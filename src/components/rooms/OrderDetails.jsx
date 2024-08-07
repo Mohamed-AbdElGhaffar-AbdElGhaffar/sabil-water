@@ -10,18 +10,20 @@ import {
   Select,
   MenuItem
 } from '@mui/material';
-import { forwardRef, useContext, useEffect, useState } from 'react';
+import { forwardRef, useContext, useEffect, useState, useMemo } from 'react';
 import { Close } from '@mui/icons-material';
 import { useOrderDetails } from '../../Contexts/OrderDetailsContext';
 import { Link } from 'react-router-dom';
 import MapEmbed from '../MapEmbed/MapEmbed';
 import moment from 'moment';
 import axios from 'axios';
-import { toast } from 'react-hot-toast';
 import { BaseUrlContext } from '../../Contexts/BaseUrlContext';
 import { useLogin } from '../../Contexts/LoginContext';
-import { ProgressBar } from 'react-loader-spinner';
-
+import { ColorRing, Oval, ProgressBar } from 'react-loader-spinner';
+import { grey } from '@mui/material/colors';
+import { toast, Toaster } from 'react-hot-toast';
+import { DataGrid, gridClasses } from '@mui/x-data-grid';
+import { useQuery } from 'react-query';
 
 const Transition = forwardRef((props, ref) => {
   return <Slide direction="up" {...props} ref={ref} />;
@@ -29,15 +31,38 @@ const Transition = forwardRef((props, ref) => {
 
 const OrderDetails = () => {
   const { orderDetails, setOrderDetails } = useOrderDetails();
+  const [ orderHistory, setOrderHistory ] = useState([]);
   const [selectedDelivery, setSelectedDelivery] = useState("default");
   const [isDisabled, setIsDisabled] = useState(false);
-  const [isAssign, setIsAssign] = useState(orderDetails?.isAssigned);
+  // const [isAssign, setIsAssign] = useState(orderDetails?.isAssigned);
   const { token } = useLogin();
   const {baseUrl} = useContext(BaseUrlContext);
 
+  const [pageSize, setPageSize] = useState(6);
+
+  const GetOrderHistory = async () => {
+    const { data } = await axios.get(`${baseUrl}/api/Order/GetOrderHistory/${orderDetails?.id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return data;
+  };
+
+  const { data: history = [], isLoading } = useQuery(['getOrderHistory', token, baseUrl, orderDetails?.id], GetOrderHistory, {
+    enabled: !!token && !!baseUrl && !!orderDetails?.id,
+  });
+
+  useEffect(() => {
+    if (history) {
+      setOrderHistory(history);
+      console.log("orderHistory : ",orderHistory);
+    }
+  }, [history, setOrderHistory]);
+
   useEffect(() => {
     let interval;
-    if (orderDetails?.isAssigned) {
+    if (orderDetails?.isAssigned && !orderDetails?.delivery?.firstName) {
       interval = setInterval(async () => {
         const { data } = await axios.get(`${baseUrl}/api/Order/GetOrderById/${orderDetails.id}`, {
           headers: {
@@ -45,10 +70,10 @@ const OrderDetails = () => {
           }
         });
         setOrderDetails(data);
-        setIsAssign(true)
+        // setIsAssign(true)
         if (!data.isAssigned) {
           clearInterval(interval);
-          setIsAssign(false)
+          // setIsAssign(false)
         }
       }, 20000);
     }
@@ -61,6 +86,15 @@ const OrderDetails = () => {
     setIsDisabled(false);
   };
   console.log("orderDetails",orderDetails);
+
+  let orderUpdate = async () => {
+    const { data } = await axios.get(`${baseUrl}/api/Order/GetOrderById/${orderDetails.id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    setOrderDetails(data)
+  }
 
   const handleDelivery = async (event) => {
     const deliveryId = event.target.value;
@@ -81,7 +115,9 @@ const OrderDetails = () => {
         );
         toast.success('Delivery person assigned successfully');
         setIsDisabled(true);
-        setIsAssign(true)
+        orderUpdate();
+        
+        // setIsAssign(true)
       } catch (error) {
         toast.error('Failed to assign delivery person');
         setSelectedDelivery("default");
@@ -96,6 +132,29 @@ const OrderDetails = () => {
       },
     },
   };
+
+  const columns = useMemo(
+    () => [
+      {
+        field: 'action',
+        headerName: 'Action',
+        flex: 1,
+        minWidth: 400,
+      },
+      { 
+        field: 'actionDate',
+        headerName: 'Action Date',
+        width: 200,
+        // flex: 1,
+        renderCell: (params) =>
+          moment(params.row.actionDate).format('YYYY/MM/DD (h:mm:ss A)'),
+        filterable: true,
+        valueGetter: (params) => moment(params.row.actionDate).format('YYYY/MM/DD (h:mm:ss A)')
+      },
+      { field: 'id', hide: true },
+    ],
+    []
+  );
 
   return (
     <Dialog
@@ -211,7 +270,7 @@ const OrderDetails = () => {
                           />
                         </div>
                       </div>
-                      {!isAssign ? <>
+                      {(!orderDetails?.isAssigned || orderDetails?.delivery?.firstName)  ? <>
                         {orderDetails?.delivery?.firstName?
                         <div className="col-md-6 col-sm-12">
                           <div className="form-group">
@@ -229,37 +288,42 @@ const OrderDetails = () => {
                         </div>
                         :''}
                         {orderDetails?.nearestDeliveries?
-                        <div className="col-lg-6 col-md-12">
-                          <div className="form-group">
-                            <label className="control-label" htmlFor="status">
-                              Assign Delivery
-                            </label>
-                            <Select
-                              id="delivery"
-                              value={selectedDelivery}
-                              onChange={handleDelivery}
-                              fullWidth
-                              sx={{
-                                height: '43.6px',
-                                backgroundColor: 'var(--bs-secondary-bg)',
-                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                  borderColor: '#A6A6A6',
-                                },
-                              }}
-                              MenuProps={menuProps}
-                              disabled={isDisabled}
-                            >
-                              <MenuItem value="default" hidden>
-                                Choose Delivery Man
-                              </MenuItem>
-                              {orderDetails?.nearestDeliveries?.map((item) => (
-                                <MenuItem key={item.id} value={item.id}>
-                                  {item.firstName + ' ' + item.lastName}
+                        <>
+                        {orderDetails?.nearestDeliveries.length === 0 ?
+                          '':
+                          <div className="col-lg-6 col-md-12">
+                            <div className="form-group">
+                              <label className="control-label" htmlFor="status">
+                                Assign Delivery
+                              </label>
+                              <Select
+                                id="delivery"
+                                value={selectedDelivery}
+                                onChange={handleDelivery}
+                                fullWidth
+                                sx={{
+                                  height: '43.6px',
+                                  backgroundColor: 'var(--bs-secondary-bg)',
+                                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#A6A6A6',
+                                  },
+                                }}
+                                MenuProps={menuProps}
+                                disabled={isDisabled}
+                              >
+                                <MenuItem value="default" hidden>
+                                  Choose Delivery Man
                                 </MenuItem>
-                              ))}
-                            </Select>
+                                {orderDetails?.nearestDeliveries?.map((item) => (
+                                  <MenuItem key={item.id} value={item.id}>
+                                    {item.firstName + ' ' + item.lastName}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </div>
                           </div>
-                        </div>
+                        }
+                        </>
                         :''}
                       </> :
                         <div className="col-lg-6 col-md-12">
@@ -267,16 +331,16 @@ const OrderDetails = () => {
                             <label className="control-label" htmlFor="status">
                               Assign Delivery
                             </label>
-                            <div className='d-flex justify-content-start align-items-center'>
-                              <ProgressBar
+                            <div className='assignDiv d-flex justify-content-between align-items-center'>
+                              <p disabled>{`${orderDetails?.lastAssignedDelivery?.firstName} ${orderDetails?.lastAssignedDelivery?.lastName}`}</p>
+                              <ColorRing
                               visible={true}
-                              height="80"
-                              // width="100%"
-                              color="#4fa94d"
-                              borderColor="#A6A6A6"
-                              ariaLabel="progress-bar-loading"
+                              height="30"
+                              width="30"
+                              ariaLabel="color-ring-loading"
                               wrapperStyle={{}}
-                              wrapperClass=""
+                              wrapperClass="color-ring-wrapper"
+                              colors={['#A6A6A6', '#A6A6A6', '#A6A6A6', '#A6A6A6', '#A6A6A6']}
                               />
                             </div>
                           </div>
@@ -354,6 +418,58 @@ const OrderDetails = () => {
                         ))}
                     </div>
                   </div>
+                </div>
+                <div className="productsData m-auto"> 
+                  <h2 className='border-0'>Order History</h2>
+                </div>
+                <div className='productsData m-auto mb-5'>
+                  <Box
+                    sx={{
+                      height: 500,
+                      width: '100%',
+                    }}
+                  >
+                    <Toaster />
+                    <DataGrid
+                      columns={columns}
+                      rows={orderHistory || []}
+                      getRowId={(row) => row.id}
+                      rowsPerPageOptions={[6, 10, 20]}
+                      pageSize={pageSize}
+                      onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+                      getRowSpacing={(params) => ({
+                        top: params.isFirstVisible ? 0 : 6,
+                        bottom: params.isLastVisible ? 0 : 6,
+                      })}
+                      sx={{
+                        [`& .${gridClasses.row}`]: {
+                          bgcolor: (theme) =>
+                            theme.palette.mode === 'light' ? grey[200] : grey[900],
+                        },
+                        '& .MuiDataGrid-virtualScroller': {
+                          scrollbarColor: 'dark',
+                          '&::-webkit-scrollbar': {
+                            width: '12px',
+                            height: '12px',
+                          },
+                          '&::-webkit-scrollbar-thumb': {
+                            backgroundColor: grey[800],
+                            borderRadius: '6px',
+                          },
+                          '&::-webkit-scrollbar-thumb:hover': {
+                            backgroundColor: grey[600],
+                          },
+                        },
+                        '& p': {
+                          margin: 0
+                        }
+                      }}
+                      components={{
+                        LoadingOverlay: () => <ProgressBar />,
+                      }}
+                      loading={isLoading}
+                    />
+                  </Box>
                 </div>
               </div>
             </div>

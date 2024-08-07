@@ -80,7 +80,8 @@ const Orders = ({ setSelectedLink, link }) => {
       {
         field: 'imageUrl',
         headerName: 'Photo',
-        width: 120,
+        flex: 1,
+        minWidth: 120,
         renderCell: (params) => (
           <Avatar src='' variant="rounded" />
         ),
@@ -90,13 +91,15 @@ const Orders = ({ setSelectedLink, link }) => {
       {
         field: 'totalPrice',
         headerName: 'Total Cost',
-        width: 120,
+        flex: 1,
+        minWidth: 120,
         renderCell: (params) => '$' + params.row.totalPrice,
       },
       { 
         field: 'customerName',
-        headerName: 'Name',
-        width: 210, 
+        headerName: 'Customer Name',
+        flex: 1,
+        minWidth: 210, 
         renderCell: (params) => params.row.customer.name,
         filterable: true,
         valueGetter: (params) => params.row.customer?.name
@@ -104,7 +107,8 @@ const Orders = ({ setSelectedLink, link }) => {
       { 
         field: 'delivery',
         headerName: 'Delivery',
-        width: 270 , 
+        flex: 1,
+        minWidth: 270 , 
         renderCell: (params) => params.row.delivery?.firstName?`${params.row.delivery?.firstName} ${params.row.delivery?.lastName}`:'',
         filterable: true,
         valueGetter: (params) => params.row.delivery?.firstName+' '+ params.row.delivery?.lastName
@@ -112,7 +116,8 @@ const Orders = ({ setSelectedLink, link }) => {
       { 
         field: 'customerPhoneNumber', 
         headerName: 'Phone Number', 
-        width: 160, 
+        flex: 1,
+        minWidth: 160, 
         renderCell: (params) => params.row.customer.phoneNumber,
         filterable: true,
         valueGetter: (params) => params.row.customer?.phoneNumber
@@ -120,7 +125,8 @@ const Orders = ({ setSelectedLink, link }) => {
       {
         field: 'orderDate',
         headerName: 'Order Date',
-        width: 200,
+        flex: 1,
+        minWidth: 200,
         renderCell: (params) =>
           moment(params.row.orderDate).format('YYYY/MM/DD (h:mm:ss A)'),
         filterable: true,
@@ -129,7 +135,8 @@ const Orders = ({ setSelectedLink, link }) => {
       { 
         field: 'orderStatus', 
         headerName: 'Status', 
-        width: 180,
+        flex: 1,
+        minWidth: 180,
         renderCell: (params) => {
           return (
             <Select
@@ -167,7 +174,8 @@ const Orders = ({ setSelectedLink, link }) => {
         field: 'actions',
         headerName: 'Actions',
         type: 'actions',
-        width: 130,
+        flex: 1,
+        minWidth: 130,
         renderCell: (params) => <OrdersActions {...{ params }} />,
       },
     ],

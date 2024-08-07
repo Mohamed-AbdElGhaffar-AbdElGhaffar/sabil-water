@@ -67,7 +67,8 @@ const Delivery = ({ setSelectedLink, link }) => {
       {
         field: 'imageUrl',
         headerName: 'Photo',
-        width: 80,
+        flex: 1,
+        minWidth: 80,
         renderCell: (params) => (
           <Avatar src={params.row.imageUrl} variant="rounded" />
         ),
@@ -77,7 +78,8 @@ const Delivery = ({ setSelectedLink, link }) => {
       {
         field: 'nationalCardImage',
         headerName: 'National card',
-        width: 120,
+        flex: 1,
+        minWidth: 120,
         renderCell: (params) => (
           <Avatar src={params.row.nationalIdUrl} variant="rounded" />
         ),
@@ -88,18 +90,20 @@ const Delivery = ({ setSelectedLink, link }) => {
       { 
         field: 'customerName', 
         headerName: 'Name', 
-        width: 290,
+        flex: 1,
+        minWidth: 290,
         renderCell: (params) => params.row.firstName +' '+ params.row.lastName ,
         filterable: true,
         valueGetter: (params) => params.row.firstName +' '+ params.row.lastName 
       },
-      { field: 'email', headerName: 'Email', width: 300},
-      { field: 'phoneNumber', headerName: 'Phone Number', width: 140 },
-      { field: 'numOfOrders', headerName: 'Ourders Number', width: 150, cellClassName:'d-flex justify-content-center' },
+      { field: 'email', headerName: 'Email', flex: 1, minWidth: 300},
+      { field: 'phoneNumber', headerName: 'Phone Number', flex: 1, minWidth: 140 },
+      { field: 'numOfOrders', headerName: 'Ourders Number', flex: 1, minWidth: 150, cellClassName:'d-flex justify-content-center' },
       { 
         field: 'isActive', 
         headerName: 'Status', 
-        width: 180,
+        flex: 1,
+        minWidth: 180,
         renderCell: (params) => {
           return (
             <Select
@@ -134,7 +138,8 @@ const Delivery = ({ setSelectedLink, link }) => {
         field: 'actions',
         headerName: 'Actions',
         type: 'actions',
-        width: 130,
+        flex: 1,
+        minWidth: 130,
         renderCell: (params) => <DeliveryActions {...{ params }} />,
       },
     ],

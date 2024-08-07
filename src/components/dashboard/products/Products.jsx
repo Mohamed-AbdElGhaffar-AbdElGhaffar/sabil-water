@@ -41,7 +41,8 @@ const Products = ({ setSelectedLink, link }) => {
       {
         field: 'imageUrl',
         headerName: 'Photo',
-        width: 70,
+        flex: 1,
+        minWidth: 70,
         renderCell: (params) => (
           <Avatar src={params.row.imageUrl} variant="rounded" />
         ),
@@ -51,15 +52,17 @@ const Products = ({ setSelectedLink, link }) => {
       {
         field: 'price',
         headerName: 'Cost',
-        width: 70,
+        flex: 1,
+        minWidth: 70,
         renderCell: (params) => '$' + params.row.price,
       },
-      { field: 'name', headerName: 'Title', width: 260 },
-      { field: 'description', headerName: 'Description', width: 620 },
+      { field: 'name', headerName: 'Title', flex: 1, minWidth: 260 },
+      { field: 'description', headerName: 'Description', flex: 1, minWidth: 620 },
       {
         field: 'createdAt',
         headerName: 'Created At',
-        width: 230,
+        flex: 1,
+        minWidth: 230,
         renderCell: (params) =>
           moment(params.row.createdAt).format('YYYY/MM/DD ( h:mm:ss A )'),
         filterable: true,
@@ -70,7 +73,8 @@ const Products = ({ setSelectedLink, link }) => {
         field: 'actions',
         headerName: 'Actions',
         type: 'actions',
-        width: 150,
+        flex: 1,
+        minWidth: 150,
         renderCell: (params) => <ProductActions {...{ params, handleDeleteProduct }} />,
       },
     ],

@@ -163,7 +163,9 @@ export default function Home() {
     if (backdrop) {
       backdrop.style.display = 'block';
     }
+  };
 
+  const handleLocation = async () => {
     const userLocation = await fetchLocation();
     setLocation(userLocation);
   };
@@ -282,7 +284,10 @@ export default function Home() {
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                  <button type="button" className="btn btn-primary" onClick={()=>setIsFormVisible(true)}>
+                  <button type="button" className="btn btn-primary" onClick={()=>{
+                    handleLocation();
+                    setIsFormVisible(true);
+                    }}>
                     Next
                   </button>
                 </div>
