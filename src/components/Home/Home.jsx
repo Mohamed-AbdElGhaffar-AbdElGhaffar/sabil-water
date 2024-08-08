@@ -46,7 +46,7 @@ export default function Home() {
     return await axios.get(`${baseUrl}/api/Product/GetAllProducts${currencyParam}`);
   }
 
-  const { isLoading, data, refetch } = useQuery(['getAllProducts', currency], getProducts, {
+  const { isLoading, isError, data, refetch } = useQuery(['getAllProducts', currency], getProducts, {
     onSuccess: (data) => {
       updateOrderItemsPrices(data.data);
     }
@@ -223,7 +223,7 @@ export default function Home() {
         </h2>
 
         <div className="container py-4">
-        {isLoading?
+        {(isLoading || isError) ?
           <div className='d-flex justify-content-center align-items-center'>
             <Lottie options={defaultOptions} height={200} width={200} />
           </div>:
@@ -255,19 +255,21 @@ export default function Home() {
           </div>
         }
         </div>
-
-        <div className="buy d-flex justify-content-center pb-4">
-          <button 
-            type="button" 
-            className={`btn btn-primary `} 
-            data-bs-toggle="modal" 
-            data-bs-target="#exampleModalCenter"
-            onClick={handleButtonClick}
-            disabled={orderItems.length === 0}
-          >
-            Check Out
-          </button>
-        </div>
+        {(isLoading || isError) ?
+          '':
+          <div className="buy d-flex justify-content-center pb-4">
+            <button 
+              type="button" 
+              className={`btn btn-primary `} 
+              data-bs-toggle="modal" 
+              data-bs-target="#exampleModalCenter"
+              onClick={handleButtonClick}
+              disabled={orderItems.length === 0}
+            >
+              Check Out
+            </button>
+          </div>
+        }
       </div>
 
       <Footer />

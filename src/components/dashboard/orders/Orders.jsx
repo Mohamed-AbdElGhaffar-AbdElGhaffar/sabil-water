@@ -78,15 +78,10 @@ const Orders = ({ setSelectedLink, link }) => {
   const columns = useMemo(
     () => [
       {
-        field: 'imageUrl',
-        headerName: 'Photo',
+        field: 'generatedId',
+        headerName: 'ID',
         flex: 1,
-        minWidth: 120,
-        renderCell: (params) => (
-          <Avatar src='' variant="rounded" />
-        ),
-        sortable: false,
-        filterable: false,
+        minWidth: 120
       },
       {
         field: 'totalPrice',

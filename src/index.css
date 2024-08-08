@@ -775,4 +775,7 @@ footer a:hover i{
     .react-tel-input .country-list{
         width: 300px !important;
     }
+    .profile .Body .Information .orderTitle{
+        font-size: 28px ;
+    }
 }

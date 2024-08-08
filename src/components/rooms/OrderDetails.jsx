@@ -25,6 +25,7 @@ import { toast, Toaster } from 'react-hot-toast';
 import { DataGrid, gridClasses } from '@mui/x-data-grid';
 import { useQuery } from 'react-query';
 import * as signalR from '@microsoft/signalr';
+import { useSignalR } from '../../Contexts/SignalRContext';
 
 const Transition = forwardRef((props, ref) => {
   return <Slide direction="up" {...props} ref={ref} />;
@@ -37,6 +38,7 @@ const OrderDetails = () => {
   // const [isAssign, setIsAssign] = useState(orderDetails?.isAssigned);
   const { token } = useLogin();
   const {baseUrl} = useContext(BaseUrlContext);
+  const { handleAssignOrder } = useSignalR();
 
   const [pageSize, setPageSize] = useState(6);
 
@@ -53,52 +55,11 @@ const OrderDetails = () => {
     enabled: !!token && !!baseUrl && !!orderDetails?.id,
   });
 
-  let getOrderDetails = async ()=>{
-    const { data } = await axios.get(`${baseUrl}/api/Order/GetOrderById/${orderDetails.id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    if (data !== orderDetails) {
-      setOrderDetails(data);
+  useEffect(() => {
+    if (orderDetails?.id) {
+      handleAssignOrder(orderDetails.id, setOrderDetails);
     }
-  }
-
-  let connection = new signalR.HubConnectionBuilder()
-    .withUrl(`${baseUrl}/OrdersHub`)
-    .build();
-
-  connection.start()
-    .then(() => console.log('SignalR Connected'))
-    .catch(err => console.error('SignalR Connection Error: ', err));
-
-  connection.on('AssignOrder', (orderId, isAssigned)  => {
-    if (orderId === orderDetails?.id) {
-      getOrderDetails();
-    }
-  });
-
-  // useEffect(() => {
-  //   let interval;
-  //   if (orderDetails?.isAssigned && !orderDetails?.delivery?.firstName) {
-  //     interval = setInterval(async () => {
-  //       const { data } = await axios.get(`${baseUrl}/api/Order/GetOrderById/${orderDetails.id}`, {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`
-  //         }
-  //       });
-  //       if (data !== orderDetails) {
-  //         setOrderDetails(data);
-  //       }
-  //       // setIsAssign(true)
-  //       if (!data.isAssigned) {
-  //         clearInterval(interval);
-  //         // setIsAssign(false)
-  //       }
-  //     }, 20000);
-  //   }
-  //   return () => clearInterval(interval);
-  // }, [orderDetails?.isAssigned, baseUrl, token, setOrderDetails]);
+  }, [orderDetails?.id, handleAssignOrder]);
 
   const handleClose = () => {
     setOrderDetails(null);
@@ -201,7 +162,7 @@ const OrderDetails = () => {
             <div className="Body px-0">
               <div className="p-0 p-md-auto">
                 <div className="Information m-auto">
-                  <h2>Customer Information</h2>
+                  <h2 className='orderTitle'>Customer Information</h2>
                   <form>
                     <div className="row">
                       {orderDetails?.customer?.name?
@@ -410,7 +371,7 @@ const OrderDetails = () => {
                   </form>
                 </div>
                 <div className="productsData m-auto">
-                  <h2>Products</h2>
+                  <h2 className='orderTitle'>Products</h2>
                   <div>
                     <div className="row">
                         {orderDetails?.orderItems?.map((item) => (
@@ -442,7 +403,7 @@ const OrderDetails = () => {
                   </div>
                 </div>
                 <div className="productsData m-auto"> 
-                  <h2 className='border-0'>Order History</h2>
+                  <h2 className='border-0 orderTitle'>Order History</h2>
                 </div>
                 <div className='productsData m-auto mb-5'>
                   <Box

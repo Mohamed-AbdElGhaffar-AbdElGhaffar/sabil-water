@@ -8,6 +8,7 @@ import { LoginProvider } from './Contexts/LoginContext';
 import { OrderDetailsProvider } from './Contexts/OrderDetailsContext';
 import { LoadingProvider } from './Contexts/LoadingContext';
 import BaseUrlContextProvider from './Contexts/BaseUrlContext';
+import { SignalRProvider } from './Contexts/SignalRContext';
 
 let routers = createBrowserRouter([
   {path:'',element:<Layout/>,children:[
@@ -23,9 +24,11 @@ function App() {
       <LoadingProvider>
         <LoginProvider>
           <OrderDetailsProvider>
-            <RoomProvider>
-              <RouterProvider router={routers} ></RouterProvider>
-            </RoomProvider>
+            <SignalRProvider>
+              <RoomProvider>
+                <RouterProvider router={routers} ></RouterProvider>
+              </RoomProvider>
+            </SignalRProvider>
           </OrderDetailsProvider>
         </LoginProvider>
       </LoadingProvider>
