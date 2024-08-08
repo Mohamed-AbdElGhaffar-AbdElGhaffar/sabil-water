@@ -43,7 +43,7 @@ const Room = () => {
       if (imagePreviewElement) {
         imagePreviewElement.src = imageSrc;
       }
-      console.log(imageSrc);
+      // console.log(imageSrc);
       formik.setFieldValue('file', files[0]);
     }
   };

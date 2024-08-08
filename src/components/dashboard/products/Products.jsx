@@ -54,7 +54,7 @@ const Products = ({ setSelectedLink, link }) => {
         headerName: 'Cost',
         flex: 1,
         minWidth: 70,
-        renderCell: (params) => '$' + params.row.price,
+        renderCell: (params) => params.row.price + " USD",
       },
       { field: 'name', headerName: 'Title', flex: 1, minWidth: 260 },
       { field: 'description', headerName: 'Description', flex: 1, minWidth: 620 },

@@ -31,7 +31,6 @@ const Transition = forwardRef((props, ref) => {
 
 const OrderDetails = () => {
   const { orderDetails, setOrderDetails } = useOrderDetails();
-  const [ orderHistory, setOrderHistory ] = useState([]);
   const [selectedDelivery, setSelectedDelivery] = useState("default");
   const [isDisabled, setIsDisabled] = useState(false);
   // const [isAssign, setIsAssign] = useState(orderDetails?.isAssigned);
@@ -54,13 +53,6 @@ const OrderDetails = () => {
   });
 
   useEffect(() => {
-    if (history) {
-      setOrderHistory(history);
-      console.log("orderHistory : ",orderHistory);
-    }
-  }, [history, setOrderHistory]);
-
-  useEffect(() => {
     let interval;
     if (orderDetails?.isAssigned && !orderDetails?.delivery?.firstName) {
       interval = setInterval(async () => {
@@ -69,7 +61,9 @@ const OrderDetails = () => {
             Authorization: `Bearer ${token}`
           }
         });
-        setOrderDetails(data);
+        if (data !== orderDetails) {
+          setOrderDetails(data);
+        }
         // setIsAssign(true)
         if (!data.isAssigned) {
           clearInterval(interval);
@@ -85,7 +79,7 @@ const OrderDetails = () => {
     setSelectedDelivery("default");
     setIsDisabled(false);
   };
-  console.log("orderDetails",orderDetails);
+  // console.log("orderDetails",orderDetails);
 
   let orderUpdate = async () => {
     const { data } = await axios.get(`${baseUrl}/api/Order/GetOrderById/${orderDetails.id}`, {
@@ -93,7 +87,9 @@ const OrderDetails = () => {
         Authorization: `Bearer ${token}`
       }
     });
-    setOrderDetails(data)
+    if (data !== orderDetails) {
+      setOrderDetails(data);
+    }
   }
 
   const handleDelivery = async (event) => {
@@ -251,7 +247,7 @@ const OrderDetails = () => {
                             id="price"
                             type="text"
                             className="form-control"
-                            value={`${orderDetails?.totalPrice} $`}
+                            value={`${orderDetails?.totalPrice} USD`}
                             disabled
                           />
                         </div>
@@ -399,13 +395,13 @@ const OrderDetails = () => {
                                   {item.productName}
                                 </h3>
                                 <h3 className="card-hover__title">
-                                  Price  <i className="fa-solid fa-hand-holding-dollar"></i> : <span>$ {item.unitPrice}</span> 
+                                  Price  <i className="fa-solid fa-hand-holding-dollar"></i> : <span>{item.unitPrice} USD</span> 
                                 </h3>
                                 <h3 className="card-hover__title">
                                   Quantity  <i className="fa-solid fa-cart-plus"></i> : <span>{item.quantity}</span> 
                                 </h3>
                                 <h3 className="card-hover__title">
-                                  Total Price  <i className="fa-solid fa-money-check-dollar"></i>: <span>$ {item.subTotalPrice}</span>
+                                  Total Price  <i className="fa-solid fa-money-check-dollar"></i>: <span>{item.subTotalPrice} USD</span>
                                 </h3>
                     
                                 <Link to="" className="card-hover__link">
@@ -432,7 +428,7 @@ const OrderDetails = () => {
                     <Toaster />
                     <DataGrid
                       columns={columns}
-                      rows={orderHistory || []}
+                      rows={history || []}
                       getRowId={(row) => row.id}
                       rowsPerPageOptions={[6, 10, 20]}
                       pageSize={pageSize}

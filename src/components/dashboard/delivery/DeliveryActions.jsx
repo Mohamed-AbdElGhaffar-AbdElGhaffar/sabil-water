@@ -22,7 +22,7 @@ const DeliveryActions = ({ params }) => {
     } catch (error) {
       console.error('Error fetching order details:', error);
     }
-    console.log("DeliveryActions");
+    // console.log("DeliveryActions");
   };
 
   return (

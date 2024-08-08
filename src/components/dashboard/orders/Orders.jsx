@@ -40,7 +40,7 @@ const Orders = ({ setSelectedLink, link }) => {
   const { data: orderStatuses = [] } = useQuery(['getOrderStatuses', token, baseUrl], () => getOrderStatuses(token, baseUrl), {
     enabled: !!token && !!baseUrl,
   });
-  console.log("orders",orders);
+  // console.log("orders",orders);
   const [pageSize, setPageSize] = useState(6);
 
   const mutation = useMutation(
@@ -93,7 +93,7 @@ const Orders = ({ setSelectedLink, link }) => {
         headerName: 'Total Cost',
         flex: 1,
         minWidth: 120,
-        renderCell: (params) => '$' + params.row.totalPrice,
+        renderCell: (params) => params.row.totalPrice + " USD",
       },
       { 
         field: 'customerName',

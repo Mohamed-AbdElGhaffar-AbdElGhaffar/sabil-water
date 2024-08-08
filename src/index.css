@@ -83,6 +83,10 @@ nav h2:hover::before, .modal .modal-header h2:hover::before{
 nav .title small, .modal .modal-header h2 small{
     font-size: 16px;
 }
+nav .icons {
+    height: 54px;
+    width: 30px;
+}
 nav .icons .moon{
     transform: translateY(0px);
 }
@@ -96,6 +100,11 @@ nav .icons div{
 nav .icons div i {
         font-size: 1.8rem;
         top: 9px;
+}
+nav .flag {
+  width: 20px;
+  height: 14px;
+  margin-right: 8px;
 }
 /* Header */
 .header{
@@ -606,14 +615,14 @@ footer a:hover i{
     text-overflow: ellipsis;
     -webkit-line-clamp: 1; 
 }
-.ProductInfo p.price{
-    width: 70px;
+.ProductInfo p.price {
+    width: 130px;
 }
 .ProductInfo p.totalPrice{
-    width: 115px;
+    width: 140px;
 }
 .ProductInfo p.quantity{
-    width: 60px;
+    width: 80px;
 }
 .leaflet-container {
   height: 100%;
@@ -672,6 +681,15 @@ footer a:hover i{
     cursor: default;
     margin: 0;
 }
+/* Phone Number Modal */
+.react-tel-input .form-control{
+    font-size: 16px !important;
+    height: 45px !important;
+    width: 100% !important;
+}
+.react-tel-input .country-list{
+    width: 666.4px !important;
+}
 @media (max-width: 991.98px){
     .container.delivery {
         max-width: 90%;
@@ -683,6 +701,9 @@ footer a:hover i{
     }
 }
 @media (max-width: 767.98px){
+    .ProductInfo h2 {
+        font-size: 20px;
+    }
     .ProductInfo .item {
         display: block;
         text-align: center;
@@ -695,12 +716,12 @@ footer a:hover i{
     .ProductInfo .item p{
         width: 100%;
         font-weight: 500;
-        font-size: 18px;
+        font-size: 16px;
         margin: 0;
     }
     .ProductInfo .item .name{
         font-weight: 700;
-        font-size: 20px;
+        font-size: 18px;
         margin-bottom: 2px;
     }
     .tooglItems{
@@ -708,6 +729,9 @@ footer a:hover i{
     }
     .modal {
         --bs-modal-width: 500px;
+    }
+    .react-tel-input .country-list{
+        width: 466.4px !important;
     }
 }
 @media (max-width: 575.98px){
@@ -747,5 +771,8 @@ footer a:hover i{
     }
     .deliveryInformation .Information h2 {
         font-size: 24px !important;
+    }
+    .react-tel-input .country-list{
+        width: 300px !important;
     }
 }

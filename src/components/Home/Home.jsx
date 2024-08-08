@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext } from 'react';
+import React, { useState, useRef, useContext, useEffect } from 'react';
 import favicon from '../../Assets/favicon.png';
 import { useQuery } from 'react-query';
 import axios from 'axios';
@@ -11,6 +11,9 @@ import LocationPicker from '../LocationPicker/LocationPicker';
 import { BaseUrlContext } from '../../Contexts/BaseUrlContext';
 import Lottie from 'react-lottie';
 import WaterAnimation from '../../Assets/WaterAnimation.json'; 
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
+// import 'flag-icon-css/css/flag-icon.min.css'; 
 
 export default function Home() {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -19,6 +22,8 @@ export default function Home() {
   const [manualLocation, setManualLocation] = useState('');
   const [useManualLocation, setUseManualLocation] = useState(true);
   const [location, setLocation] = useState(null);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [currency, setCurrency] = useState('USD');
   const closeButtonRef = useRef(null);
 
   let {baseUrl} = useContext(BaseUrlContext);
@@ -37,10 +42,27 @@ export default function Home() {
   };
 
   async function getProducts() {
-    return await axios.get(`${baseUrl}/api/Product/GetAllProducts`);
+    const currencyParam = currency !== 'USD' ? `?currency=${currency}` : '';
+    return await axios.get(`${baseUrl}/api/Product/GetAllProducts${currencyParam}`);
   }
 
-  let { isLoading, data } = useQuery('getAllProducts', getProducts);
+  const { isLoading, data, refetch } = useQuery(['getAllProducts', currency], getProducts, {
+    onSuccess: (data) => {
+      updateOrderItemsPrices(data.data);
+    }
+  });
+
+  const updateOrderItemsPrices = (products) => {
+    setOrderItems(prevOrderItems => {
+      return prevOrderItems.map(item => {
+        const product = products.find(product => product.id === item.productId);
+        return {
+          ...item,
+          price: product ? product.price : item.price
+        };
+      });
+    });
+  };
 
   const increaseQuantity = (id, name, price) => {
     const element = document.getElementById(id);
@@ -96,7 +118,7 @@ export default function Home() {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
-          console.log(`Browser Lat: ${latitude}, Lng: ${longitude}`);
+          // console.log(`Browser Lat: ${latitude}, Lng: ${longitude}`);
           setUseManualLocation(false); // Disable manual location input
           resolve({ lat: latitude, lng: longitude });
         },
@@ -127,7 +149,7 @@ export default function Home() {
       const customerNote = useManualLocation ? manualLocation : '';
 
       await axios.post(`${baseUrl}/api/Order/PlaceOrder`, {
-        customerPhoneNumber: values.phoneNumber,
+        customerPhoneNumber: "+"+values.phoneNumber,
         latitude: finalLocation.lat,
         longitude: finalLocation.lng,
         note:customerNote,
@@ -150,6 +172,7 @@ export default function Home() {
       });
       setOrderItems([]);
       setIsFormVisible(false);
+      setPhoneNumber('20')
     } catch (error) {
       toast.error('Failed, Please try again.');
       console.log(error);
@@ -174,11 +197,15 @@ export default function Home() {
     return orderItems.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
+  useEffect(() => {
+    refetch();
+  }, [currency, refetch]);
+
   return (
     <>
       <Toaster />
 
-      <Navbar handleToggle={handleToggle} isDarkMode={isDarkMode} />
+      <Navbar handleToggle={handleToggle} isDarkMode={isDarkMode} currency={currency} setCurrency={setCurrency} />
 
       <div className="header">
         <div className="container">
@@ -213,7 +240,7 @@ export default function Home() {
                       {item.description && (
                         <p className="description">{item.description}</p>
                       )}
-                      <p className="card-text">EGP {item.price}</p>
+                      <p className="card-text">{item.price} {currency}</p>
                       <div className="add d-flex justify-content-center align-items-center">
                         <button className="btn btn-outline-secondary btn-sm" onClick={() => decreaseQuantity(item.id)}>-</button>
                         <span className="itemNumber mx-2" id={item.id}>0</span>
@@ -264,7 +291,7 @@ export default function Home() {
                 <div className='ProductInfo'>
                   <div className='d-flex justify-content-between align-items-center'>
                     <h2>Order Details:</h2>
-                    <h2 className='text-dark border-0'> <span className='text-dark'>Total Price:</span> ${calculateTotalPrice()}</h2>
+                    <h2 className='text-dark border-0'> <span className='text-dark'>Total Price:</span> {calculateTotalPrice()} {currency}</h2>
                   </div>
                   <div className='item d-none d-md-flex justify-content-between align-items-center gap-1 pb-1'>
                       <p className='price d-block fw-bold text-center'>Price</p>
@@ -274,11 +301,11 @@ export default function Home() {
                     </div>
                   {orderItems?.map((item) => (
                     <div key={item.productId} className='item d-block d-md-flex justify-content-between align-items-center gap-1 pb-1'>
-                      <p className='price d-none d-md-block text-center'>$ {item.price}</p>
+                      <p className='price d-none d-md-block text-center'>{item.price} {currency}</p>
                       <p className='name text-center'>{item.name}</p>
-                      <p className='price d-block d-md-none text-center'>$ {item.price}</p>
+                      <p className='price d-block d-md-none text-center'>{item.price} {currency}</p>
                       <p className='quantity text-center '><span className='d-inline d-md-none '>Quantity : </span> {item.quantity}</p>
-                      <p className='totalPrice text-center'><span className='d-inline d-md-none '>Subtotal Price : </span> $ {item.price * item.quantity}</p>
+                      <p className='totalPrice text-center'><span className='d-inline d-md-none '>Subtotal Price : </span>{item.price * item.quantity} {currency}</p>
                     </div>
                   ))}
                 </div>
@@ -297,15 +324,32 @@ export default function Home() {
                 <Formik
                   initialValues={{ phoneNumber: '' }}
                   validationSchema={Yup.object({
-                    phoneNumber: Yup.string().matches(/^(\+2|2)?01[0125][0-9]{8}$/, 'Please enter a valid Egyptian phone number starting with 01').required('Phone number is required')
-                  })}
+                    phoneNumber: Yup.string()
+                    .required('Phone number is required')
+                    .test('is-valid-phone', 'Invalid phone number', value => /^\+?\d{10,}$/.test(value))
+                })}
                   onSubmit={handleSubmit}
                 >
+                  {({ setFieldValue }) => (
                     <Form>
+                      
                       <div className="mb-3">
                         <label htmlFor="phoneNumber" className="form-label">Phone Number</label>
-                        <Field type="tel" inputMode="numeric" id="phoneNumber" name="phoneNumber" className="form-control" />
-                        <ErrorMessage name="phoneNumber" component="div" className="text-danger phoneNumberValidation" />
+                        <PhoneInput
+                          country={'eg'}
+                          value={phoneNumber}
+                          onChange={(value) => {
+                            setPhoneNumber(value);
+                            setFieldValue('phoneNumber', value);
+                          }}
+                          inputProps={{
+                            name: 'phoneNumber',
+                            required: true,
+                            autoFocus: true
+                          }}
+                          inputClass="form-control"
+                        />
+                        <ErrorMessage name="phoneNumber" component="div" className="text-danger" />
                       </div>
                       {useManualLocation ? (
                         <div className="mb-3">
@@ -345,6 +389,7 @@ export default function Home() {
                         </button>
                       </div>
                     </Form>
+                  )}  
                 </Formik>
                 </div>
               </div>

@@ -102,7 +102,7 @@ const DeliveryInformation = () => {
         field: 'totalPrice',
         headerName: 'Total Cost',
         width: 100,
-        renderCell: (params) => '$' + params.row.totalPrice,
+        renderCell: (params) => params.row.totalPrice + " USD",
       },
       { 
         field: 'comment',
