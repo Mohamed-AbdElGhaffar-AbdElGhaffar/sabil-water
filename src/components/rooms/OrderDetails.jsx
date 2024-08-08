@@ -24,6 +24,7 @@ import { grey } from '@mui/material/colors';
 import { toast, Toaster } from 'react-hot-toast';
 import { DataGrid, gridClasses } from '@mui/x-data-grid';
 import { useQuery } from 'react-query';
+import * as signalR from '@microsoft/signalr';
 
 const Transition = forwardRef((props, ref) => {
   return <Slide direction="up" {...props} ref={ref} />;
@@ -52,34 +53,59 @@ const OrderDetails = () => {
     enabled: !!token && !!baseUrl && !!orderDetails?.id,
   });
 
-  useEffect(() => {
-    let interval;
-    if (orderDetails?.isAssigned && !orderDetails?.delivery?.firstName) {
-      interval = setInterval(async () => {
-        const { data } = await axios.get(`${baseUrl}/api/Order/GetOrderById/${orderDetails.id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        if (data !== orderDetails) {
-          setOrderDetails(data);
-        }
-        // setIsAssign(true)
-        if (!data.isAssigned) {
-          clearInterval(interval);
-          // setIsAssign(false)
-        }
-      }, 20000);
+  let getOrderDetails = async ()=>{
+    const { data } = await axios.get(`${baseUrl}/api/Order/GetOrderById/${orderDetails.id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    if (data !== orderDetails) {
+      setOrderDetails(data);
     }
-    return () => clearInterval(interval);
-  }, [orderDetails?.isAssigned, baseUrl, token, setOrderDetails]);
+  }
+
+  let connection = new signalR.HubConnectionBuilder()
+    .withUrl(`${baseUrl}/OrdersHub`)
+    .build();
+
+  connection.start()
+    .then(() => console.log('SignalR Connected'))
+    .catch(err => console.error('SignalR Connection Error: ', err));
+
+  connection.on('AssignOrder', (orderId, isAssigned)  => {
+    if (orderId === orderDetails?.id) {
+      getOrderDetails();
+    }
+  });
+
+  // useEffect(() => {
+  //   let interval;
+  //   if (orderDetails?.isAssigned && !orderDetails?.delivery?.firstName) {
+  //     interval = setInterval(async () => {
+  //       const { data } = await axios.get(`${baseUrl}/api/Order/GetOrderById/${orderDetails.id}`, {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`
+  //         }
+  //       });
+  //       if (data !== orderDetails) {
+  //         setOrderDetails(data);
+  //       }
+  //       // setIsAssign(true)
+  //       if (!data.isAssigned) {
+  //         clearInterval(interval);
+  //         // setIsAssign(false)
+  //       }
+  //     }, 20000);
+  //   }
+  //   return () => clearInterval(interval);
+  // }, [orderDetails?.isAssigned, baseUrl, token, setOrderDetails]);
 
   const handleClose = () => {
     setOrderDetails(null);
     setSelectedDelivery("default");
     setIsDisabled(false);
   };
-  // console.log("orderDetails",orderDetails);
+  console.log("orderDetails",orderDetails);
 
   let orderUpdate = async () => {
     const { data } = await axios.get(`${baseUrl}/api/Order/GetOrderById/${orderDetails.id}`, {

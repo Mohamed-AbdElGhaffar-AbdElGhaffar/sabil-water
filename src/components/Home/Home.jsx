@@ -150,8 +150,8 @@ export default function Home() {
 
       await axios.post(`${baseUrl}/api/Order/PlaceOrder`, {
         customerPhoneNumber: "+"+values.phoneNumber,
-        latitude: finalLocation.lat,
-        longitude: finalLocation.lng,
+        latitude: finalLocation?.lat,
+        longitude: finalLocation?.lng,
         note:customerNote,
         orderItems: orderItems.map(item => ({
           productId: item.productId,
@@ -352,17 +352,36 @@ export default function Home() {
                         <ErrorMessage name="phoneNumber" component="div" className="text-danger" />
                       </div>
                       {useManualLocation ? (
-                        <div className="mb-3">
-                          <label htmlFor="manualLocation" className="form-label">Manual Location</label>
-                          <textarea
-                            className="form-control"
-                            id="manualLocation"
-                            name="manualLocation"
-                            rows="3"
-                            value={manualLocation}
-                            onChange={(e) => setManualLocation(e.target.value)}
-                          ></textarea>
-                        </div>
+                        <>
+                          <div className="mb-3">
+                            <label htmlFor="manualLocation" className="form-label">Manual Location</label>
+                            <textarea
+                              className="form-control"
+                              id="manualLocation"
+                              name="manualLocation"
+                              rows="3"
+                              value={manualLocation}
+                              onChange={(e) => setManualLocation(e.target.value)}
+                            ></textarea>
+                          </div>
+                          <div className="form-check mb-2 mt-1">
+                            <Field
+                              type="checkbox"
+                              className="form-check-input cursorPointer"
+                              id="useMapLocation"
+                              name="useMapLocation"
+                              checked={!useManualLocation}
+                              onChange={(e) => {
+                                handleLocation();
+                                setUseManualLocation(e.target.checked);
+
+                              }}
+                            />
+                            <label className="form-check-label cursorPointer" htmlFor="useMapLocation">
+                              Use Map Location
+                            </label>
+                          </div>
+                        </>
                       ) : (
                         <>
                         <LocationPicker onLocationChange={setLocation} />
