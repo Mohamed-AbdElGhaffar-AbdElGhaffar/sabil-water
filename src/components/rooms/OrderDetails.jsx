@@ -97,7 +97,8 @@ const OrderDetails = () => {
           }
         );
         toast.success('Delivery person assigned successfully');
-        setIsDisabled(true);
+        // setIsDisabled(true);
+        setSelectedDelivery("default");
         orderUpdate();
         
         // setIsAssign(true)
@@ -253,7 +254,7 @@ const OrderDetails = () => {
                           />
                         </div>
                       </div>
-                      {(!orderDetails?.isAssigned || orderDetails?.delivery?.firstName)  ? <>
+                      {!orderDetails?.isAssigned ? <>
                         {orderDetails?.delivery?.firstName?
                         <div className="col-md-6 col-sm-12">
                           <div className="form-group">

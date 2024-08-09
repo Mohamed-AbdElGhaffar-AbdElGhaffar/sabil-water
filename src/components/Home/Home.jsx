@@ -24,6 +24,7 @@ export default function Home() {
   const [location, setLocation] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [currency, setCurrency] = useState('USD');
+  const [permissionStatus, setPermissionStatus] = useState(null);
   const closeButtonRef = useRef(null);
 
   let {baseUrl} = useContext(BaseUrlContext);
@@ -118,23 +119,45 @@ export default function Home() {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
-          // console.log(`Browser Lat: ${latitude}, Lng: ${longitude}`);
           setUseManualLocation(false); // Disable manual location input
           resolve({ lat: latitude, lng: longitude });
         },
         (error) => {
           console.error('Error fetching location:', error);
-          // toast.error('Failed to fetch location.');
           setUseManualLocation(true);  // Enable manual location input
           resolve(null);
         }
       );
     });
   };
+  
+  useEffect(() => {
+    if (navigator.permissions) {
+      navigator.permissions.query({ name: 'geolocation' })
+        .then(permission => {
+          setPermissionStatus(permission.state);
+          if (permission.state === 'granted') {
+            fetchLocation();
+          }
+          permission.onchange = () => {
+            setPermissionStatus(permission.state);
+            if (permission.state === 'granted') {
+              fetchLocation();
+            }
+          };
+        });
+    } else {
+      setPermissionStatus('prompt');
+    }
+  }, []);
 
-  // const handleLocationChange = (newLocation) => {
-  //   setLocation(newLocation);
-  // };
+  const handleLocationToggle = (e) => {
+    if (e.target.checked) {
+      fetchLocation();
+    } else {
+      setUseManualLocation(true);
+    }
+  };
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
@@ -366,23 +389,22 @@ export default function Home() {
                               onChange={(e) => setManualLocation(e.target.value)}
                             ></textarea>
                           </div>
-                          <div className="form-check mb-2 mt-1">
-                            <Field
-                              type="checkbox"
-                              className="form-check-input cursorPointer"
-                              id="useMapLocation"
-                              name="useMapLocation"
-                              checked={!useManualLocation}
-                              onChange={(e) => {
-                                handleLocation();
-                                setUseManualLocation(e.target.checked);
-
-                              }}
-                            />
-                            <label className="form-check-label cursorPointer" htmlFor="useMapLocation">
-                              Use Map Location
-                            </label>
-                          </div>
+                          {(permissionStatus === 'granted' || permissionStatus === 'prompt')?
+                            <div className="form-check mb-2 mt-1">
+                              <Field
+                                type="checkbox"
+                                className="form-check-input cursorPointer"
+                                id="useMapLocation"
+                                name="useMapLocation"
+                                checked={!useManualLocation}
+                                onChange={handleLocationToggle}
+                              />
+                              <label className="form-check-label cursorPointer" htmlFor="useMapLocation">
+                                Use Map Location
+                              </label>
+                            </div>
+                            : ''
+                          }
                         </>
                       ) : (
                         <>
